@@ -1,0 +1,127 @@
+
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>अन्तरक्रियात्मक क्विज</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f9; }
+        .quiz-container { max-width: 650px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h2 { color: #333; font-size: 1.25rem; margin-bottom: 15px; }
+        .option-btn { display: block; width: 100%; margin: 10px 0; padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 5px; background: #fff; cursor: pointer; text-align: left; transition: background 0.2s; }
+        .option-btn:hover { background-color: #f0f0f0; }
+        .correct { background-color: #76ff03 !important; font-weight: bold; border-color: #52b202; }
+        .wrong { background-color: #ff5252 !important; color: white; border-color: #c62828; }
+        .navigation-btns { margin-top: 20px; display: flex; justify-content: space-between; }
+        button.nav-btn { padding: 10px 20px; font-size: 16px; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 5px; font-weight: bold; }
+        button.nav-btn:disabled { background-color: #cccccc; cursor: not-allowed; }
+        .progress { font-size: 0.9rem; color: #666; margin-bottom: 10px; font-weight: bold; }
+        #completion-msg { margin-top: 20px; font-size: 1.4rem; font-weight: bold; text-align: center; color: #28a745; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div id="progress" class="progress"></div>
+    <div id="quiz"></div>
+    <div id="completion-msg">🎉 सबै प्रश्नहरूको अभ्यास पूरा भयो! बधाई छ!</div>
+    <div class="navigation-btns">
+        <button id="prev-btn" class="nav-btn" onclick="prevQuestion()" disabled>&larr; पछिल्लो (Previous)</button>
+        <button id="next-btn" class="nav-btn" onclick="nextQuestion()" style="display: none;">अर्को प्रश्न (Next Question) &rarr;</button>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        { question: "१. घोडाभेडा प्रथा नेपालको कुन जिल्लामा प्रचलित छ ?", options: ["बझाङ", "इलाम", "दैलेख", "मुगु"], answer: 3 },
+        { question: "२. भगवान बुद्धका उपदेश समावेश भएको पिटकलाई के भनिन्छ ?", options: ["विनयपिटक", "सुत्तपिटक", "बुद्धपिटक", "अभिधम्मपिटक"], answer: 1 },
+        { question: "३. बौद्ध धर्मका महावीरहरू मध्ये स्वर्णशिला महावीर कुन देशमा रहेको छ ?", options: ["श्रीलंका", "पाकिस्तान", "भारत", "थाइल्याण्ड"], answer: 3 },
+        { question: "४. भगवान गौतम बुद्धले जन्म र ज्ञान प्राप्त गरेको एउटै तिथि कुन हो ?", options: ["जेठ शुक्ल पूर्णिमा", "असार शुक्ल पूर्णिमा", "वैशाख शुक्ल पूर्णिमा", "साउन शुक्ल पूर्णिमा"], answer: 2 },
+        { question: "५. गौतम बुद्धले सर्वप्रथम कहाँ उपदेश दिएका थिए ?", options: ["सारनाथ", "तौलीहवा", "कुशीनगर", "गया"], answer: 0 },
+        { question: "६. संगीत कुन वेदसँग सम्बन्धित छ ?", options: ["अर्थवेद", "यजुर्वेद", "सामवेद", "ऋग्वेद"], answer: 2 },
+        { question: "७. प्रसिद्ध हलेसी महादेवको मन्दिर कुन जिल्लामा पर्दछ ?", options: ["धनकुटा", "मनाङ", "ताप्लेजुङ", "खोटाङ"], answer: 3 },
+        { question: "८. नेपाल धर्मनिरपेक्ष राष्ट्र कहिले घोषणा भएको थियो ?", options: ["२०६३ जेठ ४ गते", "२०६५ जेठ ४ गते", "२०६१ जेठ ४ गते", "२०६५ असार ४ गते"], answer: 0 },
+        { question: "९. राष्ट्रिय जनगणना २०७८ अनुसार नेपालमा बसोबास गर्ने जातजातिको संख्या कति रहेको छ ?", options: ["१३९", "१४२", "१२५", "१२४"], answer: 1 },
+        { question: "१०. छोरीलाई दाइजोको रूपमा चिउरीको बोट उपहार दिने चलन कुन जातिमा रहेको छ ?", options: ["राई", "चिढीमार", "चेपाङ", "सतार"], answer: 2 },
+        { question: "११. छ महिना जंगल र छ महिना बस्तीमा बस्ने जाति कुन हो ?", options: ["लेप्चा", "हायू", "वनकरिया", "राउटे"], answer: 2 },
+        { question: "१२. भारोपेली भाषा परिवार अन्तर्गत तलका मध्ये कुन भाषा पर्दछ ?", options: ["शेर्पा", "भोजपुरी", "लिम्बु", "नेवारी"], answer: 1 },
+        { question: "१३. राष्ट्रिय जनगणना २०७८ अनुसार नेपाली भाषा बोल्ने जनसंख्याको प्रतिशत कति हो ?", options: ["४४.८६%", "११.०५%", "८६.४४%", "५.८८%"], answer: 0 },
+        { question: "१४. कमबाट बढी बोलिने भाषाको क्रम मिलानमा दिइएको कुन ठिक छ ?", options: ["भोजपुरी, थारू, मैथिली, नेपाली", "थारू, मैथिली, भोजपुरी, नेपाली", "थारू, भोजपुरी, मैथिली, नेपाली", "भोजपुरी, मैथिली, थारू, नेपाली"], answer: 2 },
+        { question: "१५. नेपाली भाषाको उद्गम स्थल कुन हो ?", options: ["दुमजा", "सिंजा", "चुन्दिराम्या", "दुल्लु"], answer: 1 }
+    ];
+
+    let currentQuestionIndex = 0;
+    const userAnswers = new Array(questions.length).fill(null);
+
+    function loadQuestion() {
+        document.getElementById("next-btn").style.display = "none";
+        const q = questions[currentQuestionIndex];
+        document.getElementById("progress").innerText = `प्रश्न ${currentQuestionIndex + 1} / ${questions.length}`;
+        document.getElementById("completion-msg").style.display = "none";
+        
+        let html = `<h2>${q.question}</h2>`;
+        q.options.forEach((opt, index) => {
+            let btnClass = 'option-btn';
+            let disabledAttr = '';
+            
+            if (userAnswers[currentQuestionIndex] !== null) {
+                disabledAttr = 'disabled';
+                if (index === q.answer) {
+                    btnClass += ' correct';
+                } else if (index === userAnswers[currentQuestionIndex]) {
+                    btnClass += ' wrong';
+                }
+            }
+            
+            html += `<button class="${btnClass}" ${disabledAttr} onclick="checkAnswer(${index})">${opt}</button>`;
+        });
+
+        document.getElementById("quiz").innerHTML = html;
+        document.getElementById("prev-btn").disabled = currentQuestionIndex === 0;
+    }
+
+    function checkAnswer(selectedIndex) {
+        userAnswers[currentQuestionIndex] = selectedIndex;
+        
+        const q = questions[currentQuestionIndex];
+        const buttons = document.querySelectorAll("#quiz .option-btn");
+        
+        buttons.forEach((btn, idx) => {
+            btn.disabled = true;
+            if (idx === q.answer) {
+                btn.classList.add('correct');
+            } else if (idx === selectedIndex) {
+                btn.classList.add('wrong');
+            }
+        });
+
+        document.getElementById("next-btn").style.display = "inline-block";
+    }
+
+    function nextQuestion() {
+        if (currentQuestionIndex < questions.length - 1) {
+            currentQuestionIndex++;
+            loadQuestion();
+        } else {
+            document.getElementById("quiz").innerHTML = "";
+            document.getElementById("progress").style.display = "none";
+            document.getElementById("prev-btn").style.display = "none";
+            document.getElementById("next-btn").style.display = "none";
+            document.getElementById("completion-msg").style.display = "block";
+        }
+    }
+
+    function prevQuestion() {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            loadQuestion();
+        }
+    }
+
+    loadQuestion();
+</script>
+
+</body>
+</html>
+
